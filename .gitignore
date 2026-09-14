@@ -216,3 +216,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+data/cuad/data.zip
+data/cuad/CUAD_v1/
+data/cuad/*.json
+data/cuad/*.zip
+data/processed/cuad_examples.jsonl
