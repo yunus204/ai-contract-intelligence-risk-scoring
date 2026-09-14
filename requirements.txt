@@ -1,0 +1,31 @@
+# API
+fastapi
+uvicorn[standard]
+
+# Async processing
+celery
+
+# Deep Learning / NLP
+torch
+transformers
+spacy
+
+# Vector Database + Retrieval
+pinecone
+langchain
+langchain-community
+langchain-pinecone
+
+# Document Processing
+pdf2image
+pytesseract
+PyMuPDF
+python-docx
+
+# Data Processing
+pandas
+numpy
+
+# Configuration / File Upload
+python-dotenv
+python-multipart
