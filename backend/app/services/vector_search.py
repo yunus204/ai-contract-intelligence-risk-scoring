@@ -131,7 +131,9 @@ class ContractVectorSearch:
     def index_document(
         self,
         file_path: str,
-    ) -> Dict:
+        contract_id: str | None = None,
+        original_filename: str | None = None,
+)       -> Dict:
 
         print("=" * 60)
         print("CONTRACT VECTOR INDEXING")
@@ -149,13 +151,17 @@ class ContractVectorSearch:
                 "from the document."
             )
 
-        filename = result["filename"]
+        filename = (
+        original_filename
+        or result["filename"]
+)
 
-        contract_id = (
-            self._create_contract_id(
-                filename
-            )
+        if contract_id is None:
+            contract_id = (
+        self._create_contract_id(
+            filename
         )
+    )
 
         namespace = contract_id
 
