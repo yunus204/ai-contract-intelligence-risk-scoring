@@ -223,3 +223,21 @@ data/cuad/*.zip
 data/processed/cuad_examples.jsonl
 data/processed/tokenized/cuad_tokenized.jsonl
 data/processed/classification/cuad_classification.jsonl
+# Environment
+.env
+venv/
+
+# Raw/client documents
+data/raw/
+data/raw/*
+*.log
+
+# Large generated datasets
+data/cuad/*.json
+data/cuad/*.zip
+data/processed/cuad_examples.jsonl
+data/processed/tokenized/cuad_tokenized.jsonl
+data/processed/classification/cuad_classification.jsonl
+
+# Model checkpoints
+models/checkpoints/
