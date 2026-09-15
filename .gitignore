@@ -240,4 +240,4 @@ data/processed/tokenized/cuad_tokenized.jsonl
 data/processed/classification/cuad_classification.jsonl
 
 # Model checkpoints
-models/checkpoints/
+models/checkpoints/models/legal_ner/
