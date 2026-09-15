@@ -1,0 +1,9 @@
+{
+  "model_name": "roberta-base",
+  "max_length": 512,
+  "document_stride": 128,
+  "original_examples": 20910,
+  "tokenized_windows": 41435,
+  "examples_requiring_multiple_windows": 20525,
+  "windows_containing_answers": 1828
+}

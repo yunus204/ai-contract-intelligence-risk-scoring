@@ -221,3 +221,5 @@ data/cuad/CUAD_v1/
 data/cuad/*.json
 data/cuad/*.zip
 data/processed/cuad_examples.jsonl
+data/processed/tokenized/cuad_tokenized.jsonl
+data/processed/classification/cuad_classification.jsonl
