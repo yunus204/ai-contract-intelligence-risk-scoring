@@ -29,3 +29,5 @@ numpy
 # Configuration / File Upload
 python-dotenv
 python-multipart
+sentence-transformers
+langchain-huggingface
