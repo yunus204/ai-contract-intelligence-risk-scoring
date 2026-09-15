@@ -1,22 +1,19 @@
 import shutil
 import uuid
 from pathlib import Path
-from backend.app.services.vector_search import (
-    vector_search,
-)
+
+from celery.result import AsyncResult
 from fastapi import (
     APIRouter,
     File,
     HTTPException,
     UploadFile,
+    status,
 )
 
-from backend.app.services.document_processor import (
-    process_document,
-)
-
-from backend.app.services.entity_extractor import (
-    extract_entities,
+from backend.app.celery_app import celery_app
+from backend.app.tasks.contract_tasks import (
+    process_contract_task,
 )
 
 
@@ -51,10 +48,17 @@ ALLOWED_EXTENSIONS = {
 }
 
 
-@router.post("/upload")
+@router.post(
+    "/upload",
+    status_code=status.HTTP_202_ACCEPTED,
+)
 async def upload_contract(
     file: UploadFile = File(...),
 ):
+    """
+    Save the uploaded contract and submit
+    background processing to Celery.
+    """
 
     filename = file.filename
 
@@ -102,20 +106,11 @@ async def upload_contract(
                 buffer,
             )
 
-        result = process_document(
-            str(destination)
+        task = process_contract_task.delay(
+            str(destination),
+            contract_id,
+            filename,
         )
-
-        entities = extract_entities(
-            result["text"]
-        )
-        vector_result = (
-            vector_search.index_document(
-            file_path=str(destination),
-            contract_id=contract_id,
-            original_filename=filename,
-    )
-)
 
     except Exception as error:
 
@@ -127,53 +122,86 @@ async def upload_contract(
             detail=str(error),
         )
 
+    finally:
+        await file.close()
+
     return {
         "contract_id": contract_id,
-
         "filename": filename,
-
-        "file_type":
-            result["file_type"],
-
-        "extraction_method":
-            result[
-                "extraction_method"
-            ],
-
-        "character_count":
-            result[
-                "character_count"
-            ],
-
-        "word_count":
-            result[
-                "word_count"
-            ],
-
-        "entities": {
-            "organizations":
-                entities[
-                    "organizations"
-                ],
-
-            "dates":
-                entities[
-                    "dates"
-                ],
-
-            "money":
-                entities[
-                    "money"
-                ],
-
-            "jurisdictions":
-                entities[
-                    "jurisdictions"
-                ],
-
-            "persons":
-                entities[
-                    "persons"
-                ],
-        },
+        "task_id": task.id,
+        "status": "queued",
+        "message": (
+            "Contract uploaded successfully. "
+            "Processing has started in the background."
+        ),
     }
+
+
+@router.get(
+    "/tasks/{task_id}",
+)
+def get_task_status(
+    task_id: str,
+):
+    """
+    Check Celery processing status and
+    retrieve the completed analysis.
+    """
+
+    task = AsyncResult(
+        task_id,
+        app=celery_app,
+    )
+
+    response = {
+        "task_id": task_id,
+        "status": task.state,
+    }
+
+    if task.state == "PENDING":
+
+        response["message"] = (
+            "Task is waiting to be processed."
+        )
+
+    elif task.state == "STARTED":
+
+        response["message"] = (
+            "Contract processing has started."
+        )
+
+    elif task.state == "PROCESSING":
+
+        info = (
+            task.info
+            if isinstance(task.info, dict)
+            else {}
+        )
+
+        response["stage"] = (
+            info.get("stage")
+        )
+
+        response["progress"] = (
+            info.get("progress", 0)
+        )
+
+    elif task.state == "SUCCESS":
+
+        response["status"] = "SUCCESS"
+        response["result"] = task.result
+
+    elif task.state == "FAILURE":
+
+        response["status"] = "FAILURE"
+        response["error"] = str(
+            task.info
+        )
+
+    else:
+
+        response["message"] = (
+            f"Task state: {task.state}"
+        )
+
+    return response
