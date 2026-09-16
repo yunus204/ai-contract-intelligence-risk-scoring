@@ -1,9 +1,18 @@
 services:
 
+  # ------------------------------------------------
+  # Redis
+  # ------------------------------------------------
+
   redis:
     image: redis:7-alpine
-    container_name: contract-intelligence-redis
+
+    container_name:
+      contract-intelligence-redis
+
     restart: unless-stopped
+
+    init: true
 
     ports:
       - "6379:6379"
@@ -12,30 +21,53 @@ services:
       - redis_data:/data
 
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+        [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ]
+
       interval: 5s
       timeout: 3s
       retries: 10
+      start_period: 5s
 
+
+  # ------------------------------------------------
+  # FastAPI
+  # ------------------------------------------------
 
   api:
     build:
       context: .
       dockerfile: Dockerfile
 
-    container_name: contract-intelligence-api
+    container_name:
+      contract-intelligence-api
 
     restart: unless-stopped
+
+    init: true
 
     env_file:
       - .env
 
     environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      CELERY_BROKER_URL:
+        redis://redis:6379/0
 
-      TESSERACT_CMD: /usr/bin/tesseract
-      POPPLER_PATH: /usr/bin
+      CELERY_RESULT_BACKEND:
+        redis://redis:6379/1
+
+      TESSERACT_CMD:
+        /usr/bin/tesseract
+
+      POPPLER_PATH:
+        /usr/bin
+
+      LOG_LEVEL:
+        INFO
 
     ports:
       - "8000:8000"
@@ -48,6 +80,22 @@ services:
       redis:
         condition: service_healthy
 
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"
+        ]
+
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+    stop_grace_period: 30s
+
     command:
       [
         "uvicorn",
@@ -55,28 +103,45 @@ services:
         "--host",
         "0.0.0.0",
         "--port",
-        "8000"
+        "8000",
+        "--no-access-log"
       ]
 
+
+  # ------------------------------------------------
+  # Celery Worker
+  # ------------------------------------------------
 
   celery:
     build:
       context: .
       dockerfile: Dockerfile
 
-    container_name: contract-intelligence-celery
+    container_name:
+      contract-intelligence-celery
 
     restart: unless-stopped
+
+    init: true
 
     env_file:
       - .env
 
     environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      CELERY_BROKER_URL:
+        redis://redis:6379/0
 
-      TESSERACT_CMD: /usr/bin/tesseract
-      POPPLER_PATH: /usr/bin
+      CELERY_RESULT_BACKEND:
+        redis://redis:6379/1
+
+      TESSERACT_CMD:
+        /usr/bin/tesseract
+
+      POPPLER_PATH:
+        /usr/bin
+
+      LOG_LEVEL:
+        INFO
 
     volumes:
       - ./data:/app/data
@@ -85,6 +150,8 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+
+    stop_grace_period: 60s
 
     command:
       [
