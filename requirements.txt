@@ -31,3 +31,4 @@ python-dotenv
 python-multipart
 sentence-transformers
 langchain-huggingface
+redis>=5.0

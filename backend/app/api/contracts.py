@@ -12,9 +12,7 @@ from fastapi import (
 )
 
 from backend.app.celery_app import celery_app
-from backend.app.tasks.contract_tasks import (
-    process_contract_task,
-)
+
 
 
 router = APIRouter(
@@ -106,11 +104,14 @@ async def upload_contract(
                 buffer,
             )
 
-        task = process_contract_task.delay(
+        task = celery_app.send_task(
+            "process_contract",
+            args=[
             str(destination),
             contract_id,
             filename,
-        )
+    ],
+)
 
     except Exception as error:
 
