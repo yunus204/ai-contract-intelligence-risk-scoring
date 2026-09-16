@@ -3,8 +3,14 @@ import os
 from celery import Celery
 from dotenv import load_dotenv
 
+from backend.app.utils.logging_config import (
+    setup_logging,
+)
+
 
 load_dotenv()
+
+setup_logging()
 
 
 CELERY_BROKER_URL = os.getenv(
@@ -30,10 +36,16 @@ celery_app = Celery(
 
 celery_app.conf.update(
     task_track_started=True,
+
     result_expires=3600,
+
     task_serializer="json",
     result_serializer="json",
     accept_content=["json"],
+
     timezone="Asia/Kolkata",
     enable_utc=True,
+
+    # Keep our JSON logging configuration.
+    worker_hijack_root_logger=False,
 )

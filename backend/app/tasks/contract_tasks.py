@@ -1,4 +1,8 @@
-from backend.app.celery_app import celery_app
+import logging
+
+from backend.app.celery_app import (
+    celery_app,
+)
 
 from backend.app.services.document_processor import (
     process_document,
@@ -21,6 +25,11 @@ from backend.app.services.vector_search import (
 )
 
 
+logger = logging.getLogger(
+    "contract_intelligence.worker"
+)
+
+
 @celery_app.task(
     bind=True,
     name="process_contract",
@@ -32,197 +41,405 @@ def process_contract_task(
     original_filename: str,
 ):
     """
-    Complete asynchronous contract-processing pipeline.
+    Asynchronous contract-processing pipeline.
 
     Stages:
     1. Document extraction
     2. Entity extraction
     3. Clause classification
     4. Risk scoring
-    5. Pinecone vector indexing
+    5. Vector indexing
     """
 
-    # --------------------------------------------------
-    # Stage 1: Document extraction
-    # --------------------------------------------------
+    task_id = self.request.id
 
-    self.update_state(
-        state="PROCESSING",
-        meta={
-            "stage": "document_extraction",
-            "progress": 20,
+    logger.info(
+        "Contract processing started",
+        extra={
+            "task_id": task_id,
+            "contract_id": contract_id,
+            "stage": "started",
         },
     )
 
-    document = process_document(
-        file_path
-    )
+    try:
+        # ---------------------------------------------
+        # Stage 1: Document extraction
+        # ---------------------------------------------
 
-    document_text = document[
-        "text"
-    ]
+        self.update_state(
+            state="PROCESSING",
+            meta={
+                "stage":
+                    "document_extraction",
 
-    # --------------------------------------------------
-    # Stage 2: Entity extraction
-    # --------------------------------------------------
+                "progress":
+                    20,
+            },
+        )
 
-    self.update_state(
-        state="PROCESSING",
-        meta={
-            "stage": "entity_extraction",
-            "progress": 45,
-        },
-    )
+        logger.info(
+            "Document extraction started",
+            extra={
+                "task_id":
+                    task_id,
 
-    entities = extract_entities(
-        document_text
-    )
+                "contract_id":
+                    contract_id,
 
-    # --------------------------------------------------
-    # Stage 3: Clause classification
-    # --------------------------------------------------
+                "stage":
+                    "document_extraction",
+            },
+        )
 
-    self.update_state(
-        state="PROCESSING",
-        meta={
-            "stage": "clause_classification",
-            "progress": 65,
-        },
-    )
+        document = process_document(
+            file_path
+        )
 
-    clause_analysis = (
-        clause_classifier.analyze(
+        document_text = document[
+            "text"
+        ]
+
+        logger.info(
+            "Document extraction completed",
+            extra={
+                "task_id":
+                    task_id,
+
+                "contract_id":
+                    contract_id,
+
+                "stage":
+                    "document_extraction",
+            },
+        )
+
+
+        # ---------------------------------------------
+        # Stage 2: Entity extraction
+        # ---------------------------------------------
+
+        self.update_state(
+            state="PROCESSING",
+            meta={
+                "stage":
+                    "entity_extraction",
+
+                "progress":
+                    45,
+            },
+        )
+
+        logger.info(
+            "Entity extraction started",
+            extra={
+                "task_id":
+                    task_id,
+
+                "contract_id":
+                    contract_id,
+
+                "stage":
+                    "entity_extraction",
+            },
+        )
+
+        entities = extract_entities(
             document_text
         )
-    )
 
-    # --------------------------------------------------
-    # Stage 4: Risk scoring
-    # --------------------------------------------------
+        logger.info(
+            "Entity extraction completed",
+            extra={
+                "task_id":
+                    task_id,
 
-    self.update_state(
-        state="PROCESSING",
-        meta={
-            "stage": "risk_scoring",
-            "progress": 75,
-        },
-    )
+                "contract_id":
+                    contract_id,
 
-    risk_analysis = (
-        score_contract_risk(
-            clause_analysis[
-                "detected_clauses"
-            ]
+                "stage":
+                    "entity_extraction",
+            },
         )
-    )
 
-    # --------------------------------------------------
-    # Stage 5: Pinecone vector indexing
-    # --------------------------------------------------
 
-    self.update_state(
-        state="PROCESSING",
-        meta={
-            "stage": "vector_indexing",
-            "progress": 85,
-        },
-    )
+        # ---------------------------------------------
+        # Stage 3: Clause classification
+        # ---------------------------------------------
 
-    vector_result = (
-        vector_search.index_document(
-            file_path=file_path,
-            contract_id=contract_id,
-            original_filename=original_filename,
+        self.update_state(
+            state="PROCESSING",
+            meta={
+                "stage":
+                    "clause_classification",
+
+                "progress":
+                    65,
+            },
         )
-    )
 
-    # --------------------------------------------------
-    # Final result
-    # --------------------------------------------------
+        logger.info(
+            "Clause classification started",
+            extra={
+                "task_id":
+                    task_id,
 
-    self.update_state(
-        state="PROCESSING",
-        meta={
-            "stage": "finalizing",
-            "progress": 95,
-        },
-    )
+                "contract_id":
+                    contract_id,
 
-    return {
-        "contract_id":
-            contract_id,
+                "stage":
+                    "clause_classification",
+            },
+        )
 
-        "filename":
-            original_filename,
+        clause_analysis = (
+            clause_classifier.analyze(
+                document_text
+            )
+        )
 
-        "file_type":
-            document[
-                "file_type"
-            ],
+        logger.info(
+            "Clause classification completed",
+            extra={
+                "task_id":
+                    task_id,
 
-        "extraction_method":
-            document[
-                "extraction_method"
-            ],
+                "contract_id":
+                    contract_id,
 
-        "character_count":
-            document[
-                "character_count"
-            ],
+                "stage":
+                    "clause_classification",
+            },
+        )
 
-        "word_count":
-            document[
-                "word_count"
-            ],
 
-        "entities": {
-            "organizations":
-                entities[
-                    "organizations"
+        # ---------------------------------------------
+        # Stage 4: Risk scoring
+        # ---------------------------------------------
+
+        self.update_state(
+            state="PROCESSING",
+            meta={
+                "stage":
+                    "risk_scoring",
+
+                "progress":
+                    75,
+            },
+        )
+
+        logger.info(
+            "Risk scoring started",
+            extra={
+                "task_id":
+                    task_id,
+
+                "contract_id":
+                    contract_id,
+
+                "stage":
+                    "risk_scoring",
+            },
+        )
+
+        risk_analysis = (
+            score_contract_risk(
+                clause_analysis[
+                    "detected_clauses"
+                ]
+            )
+        )
+
+        logger.info(
+            "Risk scoring completed",
+            extra={
+                "task_id":
+                    task_id,
+
+                "contract_id":
+                    contract_id,
+
+                "stage":
+                    "risk_scoring",
+            },
+        )
+
+
+        # ---------------------------------------------
+        # Stage 5: Vector indexing
+        # ---------------------------------------------
+
+        self.update_state(
+            state="PROCESSING",
+            meta={
+                "stage":
+                    "vector_indexing",
+
+                "progress":
+                    85,
+            },
+        )
+
+        logger.info(
+            "Vector indexing started",
+            extra={
+                "task_id":
+                    task_id,
+
+                "contract_id":
+                    contract_id,
+
+                "stage":
+                    "vector_indexing",
+            },
+        )
+
+        vector_result = (
+            vector_search.index_document(
+                file_path=file_path,
+                contract_id=contract_id,
+                original_filename=original_filename,
+            )
+        )
+
+        logger.info(
+            "Vector indexing completed",
+            extra={
+                "task_id":
+                    task_id,
+
+                "contract_id":
+                    contract_id,
+
+                "stage":
+                    "vector_indexing",
+            },
+        )
+
+
+        # ---------------------------------------------
+        # Finalizing
+        # ---------------------------------------------
+
+        self.update_state(
+            state="PROCESSING",
+            meta={
+                "stage":
+                    "finalizing",
+
+                "progress":
+                    95,
+            },
+        )
+
+        result = {
+            "contract_id":
+                contract_id,
+
+            "filename":
+                original_filename,
+
+            "file_type":
+                document[
+                    "file_type"
                 ],
 
-            "dates":
-                entities[
-                    "dates"
+            "extraction_method":
+                document[
+                    "extraction_method"
                 ],
 
-            "money":
-                entities[
-                    "money"
+            "character_count":
+                document[
+                    "character_count"
                 ],
 
-            "jurisdictions":
-                entities[
-                    "jurisdictions"
+            "word_count":
+                document[
+                    "word_count"
                 ],
 
-            "persons":
-                entities[
-                    "persons"
-                ],
-        },
+            "entities": {
+                "organizations":
+                    entities[
+                        "organizations"
+                    ],
 
-        "clause_analysis":
-            clause_analysis,
+                "dates":
+                    entities[
+                        "dates"
+                    ],
 
-        "risk_analysis":
-            risk_analysis,
+                "money":
+                    entities[
+                        "money"
+                    ],
 
-        "vector_index": {
-            "indexed":
-                True,
+                "jurisdictions":
+                    entities[
+                        "jurisdictions"
+                    ],
 
-            "namespace":
-                vector_result[
-                    "namespace"
-                ],
+                "persons":
+                    entities[
+                        "persons"
+                    ],
+            },
 
-            "chunks":
-                vector_result[
-                    "chunks"
-                ],
-        },
+            "clause_analysis":
+                clause_analysis,
 
-        "status":
-            "completed",
-    }
+            "risk_analysis":
+                risk_analysis,
+
+            "vector_index": {
+                "indexed":
+                    True,
+
+                "namespace":
+                    vector_result[
+                        "namespace"
+                    ],
+
+                "chunks":
+                    vector_result[
+                        "chunks"
+                    ],
+            },
+
+            "status":
+                "completed",
+        }
+
+        logger.info(
+            "Contract processing completed",
+            extra={
+                "task_id":
+                    task_id,
+
+                "contract_id":
+                    contract_id,
+
+                "stage":
+                    "completed",
+            },
+        )
+
+        return result
+
+    except Exception:
+        logger.exception(
+            "Contract processing failed",
+            extra={
+                "task_id":
+                    task_id,
+
+                "contract_id":
+                    contract_id,
+
+                "stage":
+                    "failed",
+            },
+        )
+
+        raise
