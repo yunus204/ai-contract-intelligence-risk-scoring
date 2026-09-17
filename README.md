@@ -1379,53 +1379,62 @@ develop
 before the final production merge.
 
 ---
-
-# 📊 Project Status
+## Project Status
 
 ```text
-CUAD Dataset Processing        ✅ Complete
-
-PDF Processing                 ✅ Complete
-
-DOCX Processing                ✅ Complete
-
-Tesseract OCR                  ✅ Complete
-
-spaCy NER                      ✅ Complete
-
-RoBERTa Training Pipeline      ✅ Complete
-
-Clause Classification          ✅ Complete
-
+Project Setup                  ✅ Complete
+CUAD Data Pipeline             ✅ Complete
+Document Processing            ✅ Complete
+spaCy Legal NER                ✅ Complete
+RoBERTa Clause Classification  ✅ Complete
 Risk Scoring                   ✅ Complete
-
 Pinecone Vector Search         ✅ Complete
-
 FastAPI                        ✅ Complete
-
 Redis                          ✅ Complete
-
 Celery                         ✅ Complete
-
 React Frontend                 ✅ Complete
-
 Docker                         ✅ Complete
-
+Nginx Reverse Proxy            ✅ Complete
 Structured Logging             ✅ Complete
-
 Load Testing                   ✅ Complete
-
 Performance Benchmarking       ✅ Complete
-
 Production Hardening           ✅ Complete
+AWS EC2 Deployment             ✅ Complete
+End-to-End Contract Test       ✅ Complete
 
-Final GPU Training             ⏳ Pending
-
-AWS Cloud Deployment           ⏳ Final Stage
-```
+Full GPU Model Training        ⏳ Future Enhancement
+Public HTTPS / Domain          ⏳ Future Enhancement
 
 ---
 
+```markdown
+---
+
+## Deployment Documentation
+
+The complete AWS EC2 production deployment procedure is documented here:
+
+[`docs/deployment.md`](docs/deployment.md)
+
+The deployed architecture includes:
+
+- AWS EC2
+- Docker Compose
+- FastAPI
+- Celery
+- Redis
+- React
+- Nginx
+- spaCy NER
+- RoBERTa clause classification
+- Pinecone vector search
+- Risk scoring
+- Semantic search
+
+The complete production workflow has been validated using a real legal contract uploaded through the AWS-hosted React application.
+
+> The currently deployed RoBERTa model is an integration/smoke model. Full GPU fine-tuning on the complete CUAD-derived training dataset is retained as a future model-improvement step.
+---
 # ⚖️ Legal Disclaimer
 
 This application is intended for:
