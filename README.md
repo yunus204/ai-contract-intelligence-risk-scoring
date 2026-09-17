@@ -1404,8 +1404,7 @@ End-to-End Contract Test       ✅ Complete
 
 Full GPU Model Training        ⏳ Future Enhancement
 Public HTTPS / Domain          ⏳ Future Enhancement
-
----
+```
 
 ---
 
@@ -1432,8 +1431,10 @@ The deployed architecture includes:
 
 The complete production workflow has been validated using a real legal contract uploaded through the AWS-hosted React application.
 
-> The currently deployed RoBERTa model is an integration/smoke model. Full GPU fine-tuning on the complete CUAD-derived training dataset is retained as a future model-improvement step.
+> **Model Note:** The currently deployed RoBERTa model is an integration/smoke model. Full GPU fine-tuning on the complete CUAD-derived training dataset is retained as a future model-improvement step.
+
 ---
+
 # ⚖️ Legal Disclaimer
 
 This application is intended for:
@@ -1486,13 +1487,13 @@ Developed as a production-level **Data Science & Machine Learning project** focu
 - Vector Databases
 - Production ML Engineering
 
-GitHub:
+### GitHub Profile
 
 ```text
 https://github.com/yunus204
 ```
 
-Project Repository:
+### Project Repository
 
 ```text
 https://github.com/yunus204/ai-contract-intelligence-risk-scoring
