@@ -1195,8 +1195,12 @@ Docker Deployment              ✅ Complete
 Final Full CUAD Training       ⏳ Pending GPU availability
 ```
 
-The current smoke-test model should **not** be treated as a final production-quality legal classifier.
-
+> **Model Training Status:** A RoBERTa multi-label clause classifier has been
+> trained and integrated using the CUAD-derived training pipeline. The current
+> deployed checkpoint was produced from an integration/smoke training run and
+> successfully validates end-to-end inference, clause detection, risk scoring,
+> and deployment. AWS GPU quota for G/VT instances has now been approved for
+> full-scale training on the complete dataset.
 ---
 
 # ☁️ AWS Deployment
